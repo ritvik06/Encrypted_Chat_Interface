@@ -87,7 +87,7 @@ def clientthread(conn,addr):
 						pos2 = sub_msg.index('\n');
 						# print("pos2 is " + str(pos2))
 						length = int(sub_msg[:pos2])
-						print("Length is " + str(length))		
+						# print("Length is " + str(length))		
 						msg = sub_msg[pos2+2:pos2+2+length]	
 						# print(msg)
 
@@ -96,12 +96,12 @@ def clientthread(conn,addr):
 								uname = key
 
 						if(uname_rec not in list(clients.keys())):
-							print("Error")
+							# print("Error")
 							conn.send(bytes("ERROR 102 Unable to send\n"))
 							return
 						else:
-							print("No error")
-							print("Forwarded message to " + uname_rec " is " + msg)
+							# print("No error")
+							print("Forwarded message to " + uname_rec + " is <" + msg + ">")
 							try:
 								# conn.send(bytes("SENT ["+uname_rec+"]\n\n"))
 								conn_forward = clients[uname_rec][4] 
