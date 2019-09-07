@@ -38,7 +38,7 @@ register_msg_rec = "REGISTER TORECV ["+uname+"]\n\n"
 server_send.send(bytes(register_msg_send,'utf-8'))
 ack_send = server_send.recv(2048)
 ack_send = ack_send.decode('utf-8')
-# print(ack_send)
+print(ack_send)
 if(ack_send != "REGISTERED TOSEND ["+uname+"]\n\n"):
     print(ack_send)
     print("closed")
@@ -47,7 +47,7 @@ if(ack_send != "REGISTERED TOSEND ["+uname+"]\n\n"):
 
 server_rec.send(bytes(register_msg_rec,'utf-8'))
 ack_rec = server_rec.recv(2048)
-print(ack_rec)
+# print(ack_rec)
 ack_rec = ack_rec.decode('utf-8')
 print(ack_rec)
 if(ack_rec !="REGISTERED TORECV ["+uname+"]\n\n"):
@@ -58,10 +58,33 @@ if(ack_rec !="REGISTERED TORECV ["+uname+"]\n\n"):
   
 while True: 
 	# print("Here")
-	message = sys.stdin.readline() 
-	server_send.send(bytes("SEND" + "12201\n"+
-    	"Content-length5\n\n"+message,'utf-8')) 
-	sys.stdout.write("<You>") 
-	sys.stdout.write(message) 
+
+	# read_sockets,write_socket, error_socket = select.select(sockets_list,[],[])
+	try:
+		message1 = sys.stdin.readline() 
+		server_send.send(bytes("SEND" + "jay123\n"+
+   			"Content-Length5\n\n"+message1,'utf-8')) 
+		sys.stdout.write("<You> " + message1) 
+	except:
+		continue
+
+	try:
+		server_rec.recv(2048)
+		message2 = message2.decode('utf-8')
+		print("Message 1 " + message2)
+	except:
+		print("Nothing")
+		continue
+ 
+
+	# sys.stdout.write(message) 
+	# ack_rec = server_send.recv(2048)
+	# ack_rec = ack_rec.decode('utf-8')
+
+	# if(ack_rec[:4]!=SENT):
+	# 	print(ack_rec)
+	# 	server_send.close()
+	# 	exit()
+
 	sys.stdout.flush() 
 server.close() 

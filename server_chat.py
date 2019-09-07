@@ -20,9 +20,9 @@ def clientthread(conn,addr):
 		try:
 			message = conn.recv(2048)
 			message_string = str(message.decode('utf-8'))
-			print(message_string)
+			# print(message_string)
 			if(message):
-				print("Entered")
+				# print("Entered")
 				# A registration request for receiving data
 				if(message_string[:15]=="REGISTER TORECV" and message_string[-2:]=='\n\n'):
 
@@ -72,7 +72,9 @@ def clientthread(conn,addr):
 				elif(message_string[:4]=="SEND"):
 					# print("Reached Here")
 					pos = message_string.index('\n')
-					uname_rec = message[4:pos]
+					# print("Pos" + str(pos))
+					uname_rec = message_string[4:pos]
+					# print("Receiver " + uname_rec)
 					if (message_string[pos+1:pos+15]!="Content-Length"):
 						conn.send(bytes("ERROR 103 Header incomplete\n\n"))
 						for i in range(0,len(clients),1):
@@ -81,17 +83,31 @@ def clientthread(conn,addr):
 								return
 						return
 					else:
+						# print("Reached Here")
 						sub_msg = message_string[pos+15:]
+						# print(sub_msg)
 						pos2 = sub_msg.index('\n');
-						length = int(sub_msg[pos+16:pos2])
-						msg = message_string[pos2+1:pos2+1+length]	
+						# print("pos2 is " + str(pos2))
+						length = int(sub_msg[:pos2])
+						print("Length is " + str(length))		
+						msg = sub_msg[pos2+2:pos2+2+length]	
+						# print(msg)
 
 						if(uname_rec not in list(clients.keys())):
+							print("Error")
 							conn.send(bytes("ERROR 102 Unable to send\n"))
 							return
 						else:
-							conn.send(bytes("SENT ["+uname_rec+"]\n\n"))
-							print(msg)
+							print("No error")
+							print("Forwarded message is " + msg)
+							try:
+								# conn.send(bytes("SENT ["+uname_rec+"]\n\n"))
+								conn_forward = clients[uname_rec][4] 
+								conn_forward.send(msg)
+							except:
+								print("Failure to forward")
+								print(clients[uname_rec][4])
+								continue
 
 		except:
 			continue
