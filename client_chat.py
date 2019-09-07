@@ -62,8 +62,11 @@ while True:
 	# read_sockets,write_socket, error_socket = select.select(sockets_list,[],[])
 	try:
 		message1 = sys.stdin.readline() 
-		server_send.send(bytes("SEND" + "jay123\n"+
-   			"Content-Length5\n\n"+message1,'utf-8')) 
+		pos = message1.index(':')
+		uname_rec = message1[1:pos]
+		message = message1[pos+2:]
+		server_send.send(bytes("SEND" + uname_rec + "\n"+
+   			"Content-Length" + len(message) + "\n\n"+ message,'utf-8')) 
 		sys.stdout.write("<You> " + message1) 
 	except:
 		continue
@@ -71,9 +74,21 @@ while True:
 	try:
 		server_rec.recv(2048)
 		message2 = message2.decode('utf-8')
-		print("Message 1 " + message2)
+		pos = message2.index('\n')
+		uname = message2[7:pos]
+		if (message2[pos+1:pos+15]!="Content-Length"):
+			server_send.send("ERROR 103 Header Incomplete")
+		else:
+			server_rec.send("RECEIVED "+ uname +"\n\n")
+
+		sub_msg = message2[pos+15:]
+		pos2 = sub_msg.index('\n');
+		length = int(sub_msg[:pos2])		
+		output = sub_msg[pos2+2:pos2+2+length]		
+
+		sys.stdout.write("#" + uname + ": " + output)
 	except:
-		print("Nothing")
+		# print("Nothing")
 		continue
  
 

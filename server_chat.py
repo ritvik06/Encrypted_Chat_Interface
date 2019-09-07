@@ -77,11 +77,9 @@ def clientthread(conn,addr):
 					# print("Receiver " + uname_rec)
 					if (message_string[pos+1:pos+15]!="Content-Length"):
 						conn.send(bytes("ERROR 103 Header incomplete\n\n"))
-						for i in range(0,len(clients),1):
-							if(clients[i]==[conn,addr]):
-								clients.pop(i)
-								return
+						clients.pop(uname)
 						return
+
 					else:
 						# print("Reached Here")
 						sub_msg = message_string[pos+15:]
@@ -93,20 +91,26 @@ def clientthread(conn,addr):
 						msg = sub_msg[pos2+2:pos2+2+length]	
 						# print(msg)
 
+						for key in clients:
+							if(clients[key][2]==addr):
+								uname = key
+
 						if(uname_rec not in list(clients.keys())):
 							print("Error")
 							conn.send(bytes("ERROR 102 Unable to send\n"))
 							return
 						else:
 							print("No error")
-							print("Forwarded message is " + msg)
+							print("Forwarded message to " + uname_rec " is " + msg)
 							try:
 								# conn.send(bytes("SENT ["+uname_rec+"]\n\n"))
 								conn_forward = clients[uname_rec][4] 
-								conn_forward.send(msg)
+								conn_forward.send(bytes("FORWARD " + uname + "\n"+
+   													"Content-Length" + len(message) +
+   													 "\n\n"+ message,'utf-8'))
 							except:
 								print("Failure to forward")
-								print(clients[uname_rec][4])
+								# print(clients[uname_rec][4])
 								continue
 
 		except:
