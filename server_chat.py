@@ -27,7 +27,8 @@ def clientthread(conn,addr):
 				if(message_string[:15]=="REGISTER TORECV" and message_string[-2:]=='\n\n'):
 
 					uname = message_string[17:-3]
-					print(uname)
+					# print(uname)
+					# print("receiving socket: ",conn)
 
 					#Username should be alpha numeric
 					if(not uname.isalnum()):
@@ -50,7 +51,7 @@ def clientthread(conn,addr):
 				elif(message_string[:15]=="REGISTER TOSEND" and message_string[-2:]=="\n\n"):
 					
 					uname = message_string[17:-3]
-					
+					# print("sending socket: ",conn)
 					#Username should be alphanumeric
 					if(not uname.isalnum()):
 						conn.send(bytes("ERROR 100 MALFORMED USERNAME\n\n",'utf-8'))
@@ -63,7 +64,9 @@ def clientthread(conn,addr):
 					
 					li = ["send_socket",conn,addr]
 					clients[uname] = li
+					# print(uname)
 					conn.send(bytes("REGISTERED TOSEND ["+uname+"]\n\n",'utf-8')) 
+					continue
 						
 					'''
 					MAKE THE FORWARDING PART
@@ -76,19 +79,24 @@ def clientthread(conn,addr):
 					uname_rec = message_string[4:pos]
 					# print("Receiver " + uname_rec)
 					if (message_string[pos+1:pos+15]!="Content-Length"):
-						conn.send(bytes("ERROR 103 Header incomplete\n\n"))
+						conn.send(bytes("ERROR 103 Header incomplete\n\n", 'utf-8'))
 						clients.pop(uname)
 						return
 
 					else:
+						# print("Message string: ",message_string)
 						# print("Reached Here")
 						sub_msg = message_string[pos+15:]
+						# print("sub_msg: ",sub_msg)
 						# print(sub_msg)
 						pos2 = sub_msg.index('\n');
+						# print("pos2: ",pos2)
 						# print("pos2 is " + str(pos2))
 						length = int(sub_msg[:pos2])
+						# print("length: ",length)
 						# print("Length is " + str(length))		
-						msg = sub_msg[pos2+2:pos2+2+length]	
+						msg = sub_msg[pos2+2:pos2+2+length]
+						# print("msg: ",msg)	
 						# print(msg)
 
 						for key in clients:
@@ -101,17 +109,35 @@ def clientthread(conn,addr):
 							return
 						else:
 							# print("No error")
-							print("Forwarded message to " + uname_rec + " is <" + msg + ">")
+							# print("Forwarded message to " + uname_rec + " is <" + msg + ">")
 							try:
-								# conn.send(bytes("SENT ["+uname_rec+"]\n\n"))
-								conn_forward = clients[uname_rec][4] 
-								conn_forward.send(bytes("FORWARD " + uname + "\n"+
-   													"Content-Length" + len(message) +
-   													 "\n\n"+ message,'utf-8'))
+								conn_forward = clients[uname_rec][4]
+								# print(conn_forward)
+								# print(conn)
+								# print("UNAME: ",uname)
+								# print("MSG: ",msg)
+
+								#print(bytes(""+uname+": "+message, 'utf-8'))
+								# print(bytes(""+uname+": "+msg, 'utf-8'))
+								
+								conn_forward.send(bytes(""+uname+": "+msg, 'utf-8'))
+								# print("nani!")
 							except:
-								print("Failure to forward")
-								# print(clients[uname_rec][4])
-								continue
+								print("Failure to Forward -- " , sys.exc_info()[0])
+								contnue
+							# try:
+							# 	# conn.send(bytes("SENT ["+uname_rec+"]\n\n"))
+							# 	conn_forward = clients[uname_rec][4] 
+							# 	print(conn_forward)
+							# 	# conn_forward.send(bytes("FORWARD " + uname + "\n"+
+   				# 	# 								"Content-Length" + len(message) +
+   				# 	# 								 "\n\n"+ message,'utf-8'))
+ 
+   				# 				conn_forward.send(bytes("<",uname,">: ",message))
+							# except:
+							# 	print("Failure to forward")
+							# 	# print(clients[uname_rec][4])
+							# 	continue
 
 		except:
 			continue
