@@ -64,7 +64,7 @@ def clientthread(conn,addr):
 					
 					li = ["send_socket",conn,addr]
 					clients[uname] = li
-					# process	int(uname)
+					# print(uname)
 					conn.send(bytes("REGISTERED TOSEND ["+uname+"]\n\n",'utf-8')) 
 					continue
 						
