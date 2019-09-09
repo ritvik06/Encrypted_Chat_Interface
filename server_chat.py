@@ -67,7 +67,22 @@ def clientthread(conn,addr):
 					# print(uname)
 					conn.send(bytes("REGISTERED TOSEND ["+uname+"]\n\n",'utf-8')) 
 					continue
-						
+
+				elif(message_string[:11]=="REGISTERKEY"):
+
+					pos = message_string.index('-')
+					uname = message_string[11:pos]
+
+					li = clients[uname]
+					public_key = message_string[pos+4:]
+					li += [public_key]
+					clients[uname] = li
+
+					print("NEW KEY REGISTERED")
+
+					for i in range(len(clients[uname])):
+						print(str(clients[uname][i]))
+
 					'''
 					MAKE THE FORWARDING PART
 					'''

@@ -3,7 +3,18 @@
 import socket 
 import select 
 import sys 
+import Crypto
+from Crypto.PublicKey import RSA
+from Crypto import Random
   
+random_generator = Random.new().read
+key = RSA.generate(1024, random_generator) #generate public and private keys
+
+publickey = key.publickey().exportKey("PEM") # pub key export for exchange
+privatekey = key.exportKey("PEM")
+# print(publickey)
+# print(privatekey)
+
 '''
 Socket has a particular type AF_INET which 
 identifies a socket by its IP and Port
@@ -48,6 +59,7 @@ if(ack_send != "REGISTERED TOSEND ["+uname+"]\n\n"):
     exit()
 
 server_rec.send(bytes(register_msg_rec,'utf-8'))
+
 ack_rec = server_rec.recv(2048)
 # print(ack_rec)
 ack_rec = ack_rec.decode('utf-8')
@@ -57,6 +69,9 @@ if(ack_rec !="REGISTERED TORECV ["+uname+"]\n\n"):
     print("Here2")
     server_rec.close()
     exit()
+
+server_send.send(bytes("REGISTERKEY" + uname + "-KEY" + str(publickey),'utf-8'))
+
   
 while True: 
 	# print("Here")
