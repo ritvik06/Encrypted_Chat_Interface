@@ -77,21 +77,11 @@ while True:
 				# print("message2",message2)
 				uname = message2[:message2.index(':')]
 				rest = message2[message2.index(':')+2 : ]
-				#pos = message2.index('\n')
-				#uname = message2[7:pos]
-				#if (message2[pos+1:pos+15]!="Content-Length"):
-				#	server_send.send("ERROR 103 Header Incomplete")
-				#else:
-				#print(uname)
-				server_rec.send(bytes("RECEIVED "+ uname +"\n\n",'utf-8'))
-				# print("sent RECEIVED")
-				#sub_msg = message2[pos+15:]
-				#pos2 = sub_msg.index('\n');
-				#length = int(sub_msg[:pos2])		
-				#output = sub_msg[pos2+2:pos2+2+length]		
+
+				server_rec.send(bytes("RECEIVED "+ uname +"\n\n",'utf-8'))	
 
 				#sys.stdout.write("#" + uname + ": " + output)
-				sys.stdout.write("#" + uname + ": " + rest)
+				sys.stdout.write("@" + uname + ": " + rest)
 
 
 
@@ -135,37 +125,4 @@ while True:
 				print("1st continue error")
 				continue
 
-	# try:
-	# 	message2 = server_rec.recv(2048)
-	# 	message2 = message2.decode('utf-8')
-	# 	uname = message2[message2.index('<')+1 : message2.index('<')]
-	# 	#pos = message2.index('\n')
-	# 	#uname = message2[7:pos]
-	# 	#if (message2[pos+1:pos+15]!="Content-Length"):
-	# 	#	server_send.send("ERROR 103 Header Incomplete")
-	# 	#else:
-	# 	server_send.send("RECEIVED "+ uname +"\n\n")
-
-	# 	#sub_msg = message2[pos+15:]
-	# 	#pos2 = sub_msg.index('\n');
-	# 	#length = int(sub_msg[:pos2])		
-	# 	#output = sub_msg[pos2+2:pos2+2+length]		
-
-	# 	#sys.stdout.write("#" + uname + ": " + output)
-	# 	sys.stdout.write("#" + uname + ": " + message2)
-	# except:
-	# 	print("Nothing")
-	# 	continue
- 
-
-	#sys.stdout.write(message) 
-	#ack_rec = server_rec.recv(2048)
-	#ack_rec = ack_rec.decode('utf-8')
-
-	#if(ack_rec[:4]!=SENT):
-	#	print(ack_rec)
-	#	server_send.close()
-	#	exit()
-
-	#sys.stdout.flush() 
 server.close() 
