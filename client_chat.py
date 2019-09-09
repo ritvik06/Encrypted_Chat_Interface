@@ -10,6 +10,7 @@ identifies a socket by its IP and Port
 SOCK_STREAM specifies that data is to be read
 in continuous flow
 '''
+hang=10
 server_send = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 server_rec = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -95,6 +96,10 @@ while True:
 
 
 			except:
+				hang-=1
+				if(hang==0):
+					print("Socket crashed")
+					exit()
 				print("Nothing")
 				continue
 
@@ -102,6 +107,7 @@ while True:
 
 			try:
 				message1 = sys.stdin.readline() 
+				assert(message1[0]=='@')
 				pos = message1.index(':')
 				uname_rec = message1[1:pos]
 				message = message1[pos+1:]
@@ -116,10 +122,13 @@ while True:
 		else:
 			try:
 				ack_rec = server_send.recv(2048)
-				ack_rec = ack_rec.decode('utf-8')
+				ack_rec1 = ack_rec.decode('utf-8')
+				#print(ack_rec1)
+				if(ack_rec1[:4]!="SENT"):
+					print(ack_rec1)	
+				elif(ack_rec1[:9]=="ERROR 102"):
+					print(ack_rec1)
 
-				if(ack_rec[:4]!=SENT):
-					print(ack_rec)		
 				# else:
 				# 	sys.stdout.write("<You>: " + message) 
 			except:

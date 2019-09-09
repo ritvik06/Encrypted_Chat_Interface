@@ -77,7 +77,7 @@ def clientthread(conn,addr):
 					pos = message_string.index('\n')
 					# print("Pos" + str(pos))
 					uname_rec = message_string[4:pos]
-					# print("Receiver " + uname_rec)
+					print("Receiver " + uname_rec)
 					if (message_string[pos+1:pos+15]!="Content-Length"):
 						conn.send(bytes("ERROR 103 Header incomplete\n\n", 'utf-8'))
 						clients.pop(uname)
@@ -104,9 +104,9 @@ def clientthread(conn,addr):
 								uname = key
 
 						if(uname_rec not in list(clients.keys())):
-							# print("Error")
-							conn.send(bytes("ERROR 102 Unable to send\n"))
-							return
+							print("Error")
+							conn.send(bytes("ERROR 102 Unable to send\n",'utf-8'))
+							continue
 						else:
 							# print("No error")
 							# print("Forwarded message to " + uname_rec + " is <" + msg + ">")
@@ -121,6 +121,14 @@ def clientthread(conn,addr):
 								# print(bytes(""+uname+": "+msg, 'utf-8'))
 								
 								conn_forward.send(bytes(""+uname+": "+msg, 'utf-8'))
+
+								msent = conn_forward.recv(2048)
+								msent_str = str(msent.decode('utf-8'))
+								print(msent_str)
+								if(msent_str[:8]=="RECEIVED"):
+									conn.send(bytes('SENT'+uname_rec,'utf-8'))
+								else:
+									conn.send(bytes("ERROR 102 Unable to send","utf-8"))
 								# print("nani!")
 							except:
 								print("Failure to Forward -- " , sys.exc_info()[0])
