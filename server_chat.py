@@ -96,7 +96,7 @@ def clientthread(conn,addr):
 					pos = message_string.index('\n')
 					# print("Pos" + str(pos))
 					uname_rec = message_string[4:pos]
-					print("Receiver " + uname_rec)
+					#print("Receiver " + uname_rec)
 					if (message_string[pos+1:pos+15]!="Content-Length"):
 						conn.send(bytes("ERROR 103 Header incomplete\n\n", 'utf-8'))
 						clients.pop(uname)
@@ -143,7 +143,7 @@ def clientthread(conn,addr):
 
 								msent = conn_forward.recv(2048)
 								msent_str = str(msent.decode('utf-8'))
-								print(msent_str)
+								# print(msent_str)
 								if(msent_str[:8]=="RECEIVED"):
 									conn.send(bytes('SENT'+uname_rec,'utf-8'))
 								else:

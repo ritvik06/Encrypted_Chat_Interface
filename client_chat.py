@@ -33,9 +33,9 @@ IP_address = str(sys.argv[1])
 Port = int(sys.argv[2]) 
 uname = str(sys.argv[3])
 
-print("-------------------" + uname + "----------------------")
-print(publickey.exportKey())
-print(key.exportKey())
+# print("-------------------" + uname + "----------------------")
+#print(publickey.exportKey())
+#print(key.exportKey())
 
 '''
 Creating two sockets, one for sending, and the other for receiving
@@ -69,11 +69,15 @@ ack_rec = ack_rec.decode('utf-8')
 # print(ack_rec)
 if(ack_rec !="REGISTERED TORECV ["+uname+"]\n\n"):
     print(ack_rec)
-    print("Here2")
+    #print("Here2")
     server_rec.close()
     exit()
-
-server_send.send(bytes("REGISTERKEY" + uname + "-KEY" + publickey.exportKey().decode('utf-8'),'utf-8'))
+# print("SENT PUBLIC KEY: ",publickey)
+temp = key.publickey().exportKey(format='PEM', passphrase=None, pkcs=1)
+# print(temp)
+# print(type(key.publickey().exportKey(format='PEM', passphrase=None, pkcs=1)))
+# print("SERVER: ",bytes("REGISTERKEY" + uname + "-KEY" ,'utf-8')+temp)
+server_send.send(bytes("REGISTERKEY" + uname + "-KEY" ,'utf-8')+temp)
 
   
 while True: 
@@ -89,16 +93,26 @@ while True:
 
 			try:
 				# print("caught a message")
-				message20 = server_rec.recv(4096)
-				# print("recieved")
+				message20 = server_rec.recv(2048)
 				message2 = str(message20.decode('utf-8'))
+				# print(type(message2))
+				message2 = message2.replace("\r\n","")
+				# print("Message2: ",message2)
+				
+				# print("recieved")
+				#message2 = str(message20.decode('utf-8'))
 				# print("message2",message2)
+				#print("message2",message2)
 				uname = message2[:message2.index(':')]
-				rest = message2[message2.index(':')+2 : ]
-				print(type(rest))
-				print(type(ast.literal_eval(str(rest))))
-				rest = key.decrypt(ast.literal_eval(str(rest)))
-				print(ast.literal_eval(str(rest))	)
+				# print("Uname: ",uname)
+				rest1 = message2[message2.index(':')+2 : ]
+				# print("rest1: ",rest1)
+				# print("key: ",key.exportKey())
+				#print(type(rest))
+				#print(type(ast.literal_eval(str(rest))))
+				rest = key.decrypt(eval((rest1)))
+				# print("rest: ",rest)
+				#print(ast.literal_eval(str(rest))	)
 				#pos = message2.index('\n')
 				#uname = message2[7:pos]
 				#if (message2[pos+1:pos+15]!="Content-Length"):
@@ -111,10 +125,11 @@ while True:
 				#pos2 = sub_msg.index('\n');
 				#length = int(sub_msg[:pos2])		
 				#output = sub_msg[pos2+2:pos2+2+length]		
-
+				# print("rest: ",rest)
 				#sys.stdout.write("#" + uname + ": " + output)
-				sys.stdout.write("#" + uname + ": " + str(rest.decode()))
-
+				# print("Error in the below line")
+				sys.stdout.write("#" + uname + ": " + str(rest.decode('utf-8')))
+				# print("Error in the above line")
 
 
 			except:
@@ -127,29 +142,33 @@ while True:
 
 		elif inp_socket==sys.stdin:
 
-			try:
-				message1 = sys.stdin.readline() 
-				assert(message1[0]=='@')
-				pos = message1.index(':')
-				uname_rec = message1[1:pos]
-				message = message1[pos+1:]
-				server_send.send(bytes("FETCHKEY" + uname_rec,'utf-8'))
-				pub_key_rec = server_send.recv(2048)
-				pub_key_rec = pub_key_rec.decode('utf-8')
-				print(pub_key_rec)
-				pub_key_rec = RSA.importKey(pub_key_rec)
-				print(pub_key_rec.can_encrypt())
-
-				encrypted = publickey.encrypt(message.encode()	,32)
-				print(encrypted)
-				print(type(encrypted))
-				server_send.send(bytes("SEND" + uname_rec + "\n"+
-						"Content-Length" + str(len(message)) + "\n\n"+ str(encrypted),'utf-8')) 
-				
-				sys.stdout.write("<You>: "+message)
-			except:
-				print("input error")
-				continue
+			# try:
+			message1 = sys.stdin.readline() 
+			assert(message1[0]=='@')
+			pos = message1.index(':')
+			uname_rec = message1[1:pos]
+			message = message1[pos+1:]
+			server_send.send(bytes("FETCHKEY" + uname_rec,'utf-8'))
+			pub_key_rec = server_send.recv(2048)
+			# print("reeived public key: ",pub_key_rec)
+			#pub_key_rec = pub_key_rec.decode('utf-8')
+			#print(pub_key_rec)
+			# pub_key_rec = RSA.importKey(pub_key_rec)
+			# print(pub_key_rec.can_encrypt())
+			pub_key_rec = RSA.importKey(pub_key_rec, passphrase=None) 
+			# print("vds:",pub_key_rec)
+			# print("message: ",message.encode('UTF-8'))
+			# print("message: ",type(message.encode('UTF-8')))
+			encrypted = pub_key_rec.encrypt(message.encode('UTF-8'),32)
+			# print(encrypted)
+			# print(type(encrypted))
+			server_send.send(bytes("SEND" + uname_rec + "\n"+
+					"Content-Length" + str(len(message)) + "\n\n"+ str(encrypted),'utf-8')) 
+			
+			sys.stdout.write("<You>: "+message)
+			# except:
+			# 	print("input error")
+			# 	continue
 
 		else:
 			try:
