@@ -6,12 +6,12 @@ import sys
 import Crypto
 from Crypto.PublicKey import RSA
 from Crypto import Random
-  
+import ast  
+
 random_generator = Random.new().read
 key = RSA.generate(1024, random_generator) #generate public and private keys
 
 publickey = key.publickey() # pub key export for exchange
-print(publickey)
 # print(str(publickey.exportKey()))
 
 '''
@@ -32,6 +32,10 @@ if len(sys.argv) != 4:
 IP_address = str(sys.argv[1]) 
 Port = int(sys.argv[2]) 
 uname = str(sys.argv[3])
+
+print("-------------------" + uname + "----------------------")
+print(publickey.exportKey())
+print(key.exportKey())
 
 '''
 Creating two sockets, one for sending, and the other for receiving
@@ -88,13 +92,13 @@ while True:
 				message20 = server_rec.recv(4096)
 				# print("recieved")
 				message2 = str(message20.decode('utf-8'))
-				print(message2)
 				# print("message2",message2)
 				uname = message2[:message2.index(':')]
 				rest = message2[message2.index(':')+2 : ]
-				rest = key.decrypt(rest)
-				print(rest)
-
+				print(type(rest))
+				print(type(ast.literal_eval(str(rest))))
+				rest = key.decrypt(ast.literal_eval(str(rest)))
+				print(ast.literal_eval(str(rest))	)
 				#pos = message2.index('\n')
 				#uname = message2[7:pos]
 				#if (message2[pos+1:pos+15]!="Content-Length"):
@@ -109,7 +113,7 @@ while True:
 				#output = sub_msg[pos2+2:pos2+2+length]		
 
 				#sys.stdout.write("#" + uname + ": " + output)
-				sys.stdout.write("#" + uname + ": " + rest)
+				sys.stdout.write("#" + uname + ": " + str(rest.decode()))
 
 
 
@@ -136,8 +140,9 @@ while True:
 				pub_key_rec = RSA.importKey(pub_key_rec)
 				print(pub_key_rec.can_encrypt())
 
-				encrypted = publickey.encrypt(message.encode(),32)
+				encrypted = publickey.encrypt(message.encode()	,32)
 				print(encrypted)
+				print(type(encrypted))
 				server_send.send(bytes("SEND" + uname_rec + "\n"+
 						"Content-Length" + str(len(message)) + "\n\n"+ str(encrypted),'utf-8')) 
 				

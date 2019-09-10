@@ -114,7 +114,7 @@ def clientthread(conn,addr):
 						length = int(sub_msg[:pos2])
 						# print("length: ",length)
 						# print("Length is " + str(length))		
-						msg = sub_msg[pos2+2:pos2+2+length]
+						msg = sub_msg[pos2+2:]
 						# print("msg: ",msg)	
 						# print(msg)
 
