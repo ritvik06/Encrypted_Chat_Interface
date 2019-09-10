@@ -10,10 +10,9 @@ from Crypto import Random
 random_generator = Random.new().read
 key = RSA.generate(1024, random_generator) #generate public and private keys
 
-publickey = key.publickey().exportKey("PEM") # pub key export for exchange
-privatekey = key.exportKey("PEM")
-# print(publickey)
-# print(privatekey)
+publickey = key.publickey() # pub key export for exchange
+print(publickey)
+# print(str(publickey.exportKey()))
 
 '''
 Socket has a particular type AF_INET which 
@@ -70,7 +69,7 @@ if(ack_rec !="REGISTERED TORECV ["+uname+"]\n\n"):
     server_rec.close()
     exit()
 
-server_send.send(bytes("REGISTERKEY" + uname + "-KEY" + str(publickey),'utf-8'))
+server_send.send(bytes("REGISTERKEY" + uname + "-KEY" + publickey.exportKey().decode('utf-8'),'utf-8'))
 
   
 while True: 
@@ -86,12 +85,16 @@ while True:
 
 			try:
 				# print("caught a message")
-				message20 = server_rec.recv(2048)
+				message20 = server_rec.recv(4096)
 				# print("recieved")
 				message2 = str(message20.decode('utf-8'))
+				print(message2)
 				# print("message2",message2)
 				uname = message2[:message2.index(':')]
 				rest = message2[message2.index(':')+2 : ]
+				rest = key.decrypt(rest)
+				print(rest)
+
 				#pos = message2.index('\n')
 				#uname = message2[7:pos]
 				#if (message2[pos+1:pos+15]!="Content-Length"):
@@ -126,8 +129,17 @@ while True:
 				pos = message1.index(':')
 				uname_rec = message1[1:pos]
 				message = message1[pos+1:]
+				server_send.send(bytes("FETCHKEY" + uname_rec,'utf-8'))
+				pub_key_rec = server_send.recv(2048)
+				pub_key_rec = pub_key_rec.decode('utf-8')
+				print(pub_key_rec)
+				pub_key_rec = RSA.importKey(pub_key_rec)
+				print(pub_key_rec.can_encrypt())
+
+				encrypted = publickey.encrypt(message.encode(),32)
+				print(encrypted)
 				server_send.send(bytes("SEND" + uname_rec + "\n"+
-						"Content-Length" + str(len(message)) + "\n\n"+ message,'utf-8')) 
+						"Content-Length" + str(len(message)) + "\n\n"+ str(encrypted),'utf-8')) 
 				
 				sys.stdout.write("<You>: "+message)
 			except:

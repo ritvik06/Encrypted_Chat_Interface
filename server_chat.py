@@ -80,8 +80,12 @@ def clientthread(conn,addr):
 
 					print("NEW KEY REGISTERED")
 
-					for i in range(len(clients[uname])):
-						print(str(clients[uname][i]))
+				elif (message_string[:8]=="FETCHKEY"):
+					uname_rec = message_string[8:]
+					public_key = clients[uname_rec][5]
+
+					conn.send(bytes(public_key,'utf-8'))
+
 
 					'''
 					MAKE THE FORWARDING PART
