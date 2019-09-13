@@ -105,25 +105,25 @@ def clientthread(conn,addr):
 					else:
 						# print("Message string: ",message_string)
 						# print("Reached Here")
-						print("message_string: ",message_string)
-						print(pos)
+						#print("message_string: ",message_string)
+						#print(pos)
 						pos2 = message_string[(pos+1):].index('\n')
-						print(message_string[(pos+pos2+1):])
+						#print(message_string[(pos+pos2+1):])
 						pos3 = message_string[(pos+pos2+2):].index('\n')
-						print(pos2)
-						print(pos3)
+						#print(pos2)
+						#print(pos3)
 						sub_msg = message_string[pos+pos2+16:]
 						sign_send = message[pos+5:pos+pos2]
-						print("sub_msg: ",sub_msg)
+						#print("sub_msg: ",sub_msg)
 						# print(sub_msg)
 						#pos2 = sub_msg.index('\n');
 						# print("pos2: ",pos2)
 						# print("pos2 is " + str(pos2))
 						length = int(sub_msg[:sub_msg.index('\n')])
-						print("length: ",length)
+						# print("length: ",length)
 						# print("Length is " + str(length))		
 						msg = message_string[pos+pos2+pos3+4:]
-						print("msg: ",msg)	
+						# print("msg: ",msg)	
 						# print(msg)
 
 						for key in clients:
@@ -175,7 +175,7 @@ def clientthread(conn,addr):
 							# 	continue
 
 		except:
-			contnue
+			continue
 
 
 '''
