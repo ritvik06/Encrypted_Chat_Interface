@@ -11,7 +11,7 @@ from Crypto.Hash import MD5
 from base64 import b64encode, b64decode
 import ast  
 
-
+#function to apply a signature to a message
 def sign(message, priv_key):
 	print("priv key",priv_key)
 	signer = PKCS1_v1_5.new(priv_key)
@@ -21,6 +21,7 @@ def sign(message, priv_key):
 	print("Sign type: ",type(signer.sign(digest)))
 	return signer.sign(digest)
 
+#function to verify a message with a signature
 def verify(message, signature, pub_key):
 	print("pub key: ",pub_key)
 	signer = PKCS1_v1_5.new(pub_key)
@@ -30,11 +31,11 @@ def verify(message, signature, pub_key):
 	print(type(signature))
 	return signer.verify(digest, signature)
 
+#generate private, public keys for user
 random_generator = Random.new().read
 key = RSA.generate(1024, random_generator) #generate public and private keys
 
 publickey = key.publickey() # pub key export for exchange
-# print(str(publickey.exportKey()))
 
 '''
 Socket has a particular type AF_INET which 
@@ -42,7 +43,9 @@ identifies a socket by its IP and Port
 SOCK_STREAM specifies that data is to be read
 in continuous flow
 '''
+#the maximum number of server failures
 hang=10
+
 server_send = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 server_rec = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -55,10 +58,6 @@ IP_address = str(sys.argv[1])
 Port = int(sys.argv[2]) 
 uname = str(sys.argv[3])
 
-# print("-------------------" + uname + "----------------------")
-#print(publickey.exportKey())
-#print(key.exportKey())
-
 '''
 Creating two sockets, one for sending, and the other for receiving
 '''
@@ -66,17 +65,15 @@ server_send.connect((IP_address, Port))
 server_rec.connect((IP_address,Port))
 
 '''
-Sends message to the server for registering the user. Expects an ACK and only then proceeds for 
+Sends messages to the server for registering(both sockets) the user. Expects an ACK and only then proceeds for 
 data forwarding among users
 '''
 register_msg_send = "REGISTER TOSEND ["+uname+"]\n\n"
 register_msg_rec = "REGISTER TORECV ["+uname+"]\n\n"
 
 server_send.send(bytes(register_msg_send,'utf-8'))
-# print("waiting")
 ack_send = server_send.recv(2048)
 ack_send = ack_send.decode('utf-8')
-# print(ack_send)
 if(ack_send != "REGISTERED TOSEND ["+uname+"]\n\n"):
     print(ack_send)
     print("closed")
@@ -84,22 +81,21 @@ if(ack_send != "REGISTERED TOSEND ["+uname+"]\n\n"):
     exit()
 
 server_rec.send(bytes(register_msg_rec,'utf-8'))
-
 ack_rec = server_rec.recv(2048)
-# print(ack_rec)
 ack_rec = ack_rec.decode('utf-8')
-# print(ack_rec)
 if(ack_rec !="REGISTERED TORECV ["+uname+"]\n\n"):
     print(ack_rec)
-    #print("Here2")
     server_rec.close()
     exit()
-# print("SENT PUBLIC KEY: ",publickey)
+
 temp = key.publickey().exportKey(format='PEM', passphrase=None, pkcs=1)
-# print(temp)
-# print(type(key.publickey().exportKey(format='PEM', passphrase=None, pkcs=1)))
-# print("SERVER: ",bytes("REGISTERKEY" + uname + "-KEY" ,'utf-8')+temp)
 server_send.send(bytes("REGISTERKEY" + uname + "-KEY" ,'utf-8')+temp)
+ack_key = server_send.recv(2048)
+ack_key = ack_key.decode('utf-8')
+if(ack_rec != "NEW KEY REGISTERED"):
+	print(ack_rec)
+	server_send.close()
+	exit()
 
   
 while True: 

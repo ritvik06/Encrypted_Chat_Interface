@@ -61,7 +61,7 @@ def clientthread(conn,addr):
 					conn.send(bytes("REGISTERED TOSEND ["+uname+"]\n\n",'utf-8')) 
 					continue
 
-				#Register the public key of the 
+				#Register the public key of the user
 				elif(message_string[:11]=="REGISTERKEY"):
 
 					pos = message_string.index('-')
@@ -72,7 +72,7 @@ def clientthread(conn,addr):
 					li += [public_key]
 					clients[uname] = li
 
-					print("NEW KEY REGISTERED")
+					conn.send(bytes("NEW KEY REGISTERED",'utf-8'))
 
 				elif (message_string[:8]=="FETCHKEY"):
 					uname_rec = message_string[8:]
@@ -86,40 +86,26 @@ def clientthread(conn,addr):
 					'''
 
 				elif(message_string[:4]=="SEND"):
-					# print("Reached Here")
 					pos = message_string.index('\n')
-					# print("Pos" + str(pos))
+					#extract the username
 					uname_rec = message_string[4:pos]
-					#print("Receiver " + uname_rec)
+					#throw error if header does not have content length
 					if ("Content-Length" not in message_string):
 						conn.send(bytes("ERROR 103 Header incomplete\n\n", 'utf-8'))
 						clients.pop(uname)
 						return
 
 					else:
-						# print("Message string: ",message_string)
-						# print("Reached Here")
-						print("message_string: ",message_string)
-						print(pos)
+						#extract various parts from the message
 						pos2 = message_string[(pos+1):].index('\n')
-						print(message_string[(pos+pos2+1):])
 						pos3 = message_string[(pos+pos2+2):].index('\n')
-						print(pos2)
-						print(pos3)
 						sub_msg = message_string[pos+pos2+16:]
 						sign_send = message[pos+5:pos+pos2]
-						print("sub_msg: ",sub_msg)
-						# print(sub_msg)
-						#pos2 = sub_msg.index('\n');
-						# print("pos2: ",pos2)
-						# print("pos2 is " + str(pos2))
 						length = int(sub_msg[:sub_msg.index('\n')])
-						print("length: ",length)
-						# print("Length is " + str(length))		
-						msg = message_string[pos+pos2+pos3+4:]
-						print("msg: ",msg)	
-						# print(msg)
+						# msg = message_string[pos+pos2+pos3+4:]
+						msg = message_string[pos+pos2+pos3+4:pos+pos2+pos3+4+length]
 
+						#retrieve the recipient's key 
 						for key in clients:
 							if(clients[key][2]==addr):
 								uname = key
@@ -129,47 +115,25 @@ def clientthread(conn,addr):
 							conn.send(bytes("ERROR 102 Unable to send\n",'utf-8'))
 							continue
 						else:
-							# print("No error")
-							# print("Forwarded message to " + uname_rec + " is <" + msg + ">")
 							try:
+								#extract the recipient's receiver socket
 								conn_forward = clients[uname_rec][4]
-								# print(conn_forward)
-								# print(conn)
-								# print("UNAME: ",uname)
-								# print("MSG: ",msg)
-
-								#print(bytes(""+uname+": "+message, 'utf-8'))
-								# print(bytes(""+uname+": "+msg, 'utf-8'))
-								
+								#forward data to recipient
 								conn_forward.send(bytes(""+uname+"\n "+msg+"\n ", 'utf-8')+sign_send)
 
+								#wait for ACK from recipient
 								msent = conn_forward.recv(2048)
 								msent_str = str(msent.decode('utf-8'))
-								# print(msent_str)
 								if(msent_str[:8]=="RECEIVED"):
 									conn.send(bytes('SENT'+uname_rec,'utf-8'))
 								else:
 									conn.send(bytes("ERROR 102 Unable to send","utf-8"))
-								# print("nani!")
 							except:
 								print("Failure to Forward -- " , sys.exc_info()[0])
-								contnue
-							# try:
-							# 	# conn.send(bytes("SENT ["+uname_rec+"]\n\n"))
-							# 	conn_forward = clients[uname_rec][4] 
-							# 	print(conn_forward)
-							# 	# conn_forward.send(bytes("FORWARD " + uname + "\n"+
-   				# 	# 								"Content-Length" + len(message) +
-   				# 	# 								 "\n\n"+ message,'utf-8'))
- 
-   				# 				conn_forward.send(bytes("<",uname,">: ",message))
-							# except:
-							# 	print("Failure to forward")
-							# 	# print(clients[uname_rec][4])
-							# 	continue
-
+								continue
+				
 		except:
-			contnue
+			continue
 
 
 '''
@@ -180,7 +144,6 @@ in continuous flow
 '''
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-#No clue what the above line means
 
 if(len(sys.argv)!=3):
 	print("Correct usage: name_of_file IP Port")
