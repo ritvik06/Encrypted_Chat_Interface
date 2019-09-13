@@ -6,7 +6,29 @@ import sys
 import Crypto
 from Crypto.PublicKey import RSA
 from Crypto import Random
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import MD5
+from base64 import b64encode, b64decode
 import ast  
+
+
+def sign(message, priv_key):
+	print("priv key",priv_key)
+	signer = PKCS1_v1_5.new(priv_key)
+	digest = MD5.new()
+	digest.update(message)
+	print(signer.sign(digest))
+	print("Sign type: ",type(signer.sign(digest)))
+	return signer.sign(digest)
+
+def verify(message, signature, pub_key):
+	print("pub key: ",pub_key)
+	signer = PKCS1_v1_5.new(pub_key)
+	digest = MD5.new()
+	digest.update(message)
+	print(type(digest))
+	print(type(signature))
+	return signer.verify(digest, signature)
 
 random_generator = Random.new().read
 key = RSA.generate(1024, random_generator) #generate public and private keys
@@ -94,23 +116,32 @@ while True:
 			try:
 				# print("caught a message")
 				message20 = server_rec.recv(2048)
+				print("message20: ",message20)
 				message2 = str(message20.decode('utf-8'))
 				# print(type(message2))
 				message2 = message2.replace("\r\n","")
+				pos1 = message2.index('\n')
+				pos2 = message2[(pos1+1):].index('\n')
+
+				sign_recv = message20[pos1+pos2+3:]
+				print("sign_recv: ",sign_recv)
 				# print("Message2: ",message2)
 				
 				# print("recieved")
 				#message2 = str(message20.decode('utf-8'))
 				# print("message2",message2)
 				#print("message2",message2)
-				uname = message2[:message2.index(':')]
-				# print("Uname: ",uname)
-				rest1 = message2[message2.index(':')+2 : ]
+
+				uname = message2[:message2.index('\n')]
+				print("Uname: ",uname)
+				rest1 = message2[message2.index('\n')+2 : pos1+pos2+1]
 				# print("rest1: ",rest1)
 				# print("key: ",key.exportKey())
 				#print(type(rest))
 				#print(type(ast.literal_eval(str(rest))))
+				print("REST1: ",rest1)
 				rest = key.decrypt(eval((rest1)))
+				print("REST: ",rest)
 				# print("rest: ",rest)
 				#print(ast.literal_eval(str(rest))	)
 				#pos = message2.index('\n')
@@ -119,6 +150,14 @@ while True:
 				#	server_send.send("ERROR 103 Header Incomplete")
 				#else:
 				#print(uname)
+				server_send.send(bytes("FETCHKEY" + uname,'utf-8'))
+				pub_key_rec = server_send.recv(2048)
+				pub_key_rec = RSA.importKey(pub_key_rec, passphrase=None) 
+
+				print(type(sign_recv))
+				print(b64decode(sign_recv+b'===='))
+				verified = verify(rest,(b64decode(sign_recv+b'====')),pub_key_rec)
+				print("Verified: ",verified)
 				server_rec.send(bytes("RECEIVED "+ uname +"\n\n",'utf-8'))
 				# print("sent RECEIVED")
 				#sub_msg = message2[pos+15:]
@@ -138,7 +177,7 @@ while True:
 					print("Socket crashed")
 					exit()
 				print("Nothing")
-				continue
+				coninue
 
 		elif inp_socket==sys.stdin:
 
@@ -162,7 +201,12 @@ while True:
 			encrypted = pub_key_rec.encrypt(message.encode('UTF-8'),32)
 			# print(encrypted)
 			# print(type(encrypted))
-			server_send.send(bytes("SEND" + uname_rec + "\n"+
+			print("MESSAGE: ",message)
+			#salt
+			print(sign(message.encode('utf-8'),key))
+			sign_send = b64encode(sign(message.encode('utf-8'),key))
+
+			server_send.send(bytes("SEND" + uname_rec + "\nSIGN",'utf-8') + sign_send + bytes( "\n"+
 					"Content-Length" + str(len(message)) + "\n\n"+ str(encrypted),'utf-8')) 
 			
 			sys.stdout.write("<You>: "+message)

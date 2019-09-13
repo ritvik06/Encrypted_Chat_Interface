@@ -20,15 +20,11 @@ def clientthread(conn,addr):
 		try:
 			message = conn.recv(2048)
 			message_string = str(message.decode('utf-8'))
-			# print(message_string)
 			if(message):
-				# print("Entered")
 				# A registration request for receiving data
 				if(message_string[:15]=="REGISTER TORECV" and message_string[-2:]=='\n\n'):
 
 					uname = message_string[17:-3]
-					# print(uname)
-					# print("receiving socket: ",conn)
 
 					#Username should be alpha numeric
 					if(not uname.isalnum()):
@@ -38,7 +34,6 @@ def clientthread(conn,addr):
 						li = clients[uname]
 						li += ["recv_socket",conn]
 						clients[uname]=li
-						#print(clients)
 						conn.send(bytes("REGISTERED TORECV ["+uname+"]\n\n",'utf-8')) 
 					
 						# DO EXCEPTION HANDLING FOR KEY ERROR if different usernames come up for send and receive sockets
@@ -47,11 +42,10 @@ def clientthread(conn,addr):
 						return
 					
 					
-				# A registration request for receiving data
+				# A registration request for sending data
 				elif(message_string[:15]=="REGISTER TOSEND" and message_string[-2:]=="\n\n"):
 					
 					uname = message_string[17:-3]
-					# print("sending socket: ",conn)
 					#Username should be alphanumeric
 					if(not uname.isalnum()):
 						conn.send(bytes("ERROR 100 MALFORMED USERNAME\n\n",'utf-8'))
@@ -64,10 +58,10 @@ def clientthread(conn,addr):
 					
 					li = ["send_socket",conn,addr]
 					clients[uname] = li
-					# print(uname)
 					conn.send(bytes("REGISTERED TOSEND ["+uname+"]\n\n",'utf-8')) 
 					continue
 
+				#Register the public key of the 
 				elif(message_string[:11]=="REGISTERKEY"):
 
 					pos = message_string.index('-')
@@ -97,7 +91,7 @@ def clientthread(conn,addr):
 					# print("Pos" + str(pos))
 					uname_rec = message_string[4:pos]
 					#print("Receiver " + uname_rec)
-					if (message_string[pos+1:pos+15]!="Content-Length"):
+					if ("Content-Length" not in message_string):
 						conn.send(bytes("ERROR 103 Header incomplete\n\n", 'utf-8'))
 						clients.pop(uname)
 						return
@@ -105,17 +99,25 @@ def clientthread(conn,addr):
 					else:
 						# print("Message string: ",message_string)
 						# print("Reached Here")
-						sub_msg = message_string[pos+15:]
-						# print("sub_msg: ",sub_msg)
+						print("message_string: ",message_string)
+						print(pos)
+						pos2 = message_string[(pos+1):].index('\n')
+						print(message_string[(pos+pos2+1):])
+						pos3 = message_string[(pos+pos2+2):].index('\n')
+						print(pos2)
+						print(pos3)
+						sub_msg = message_string[pos+pos2+16:]
+						sign_send = message[pos+5:pos+pos2]
+						print("sub_msg: ",sub_msg)
 						# print(sub_msg)
-						pos2 = sub_msg.index('\n');
+						#pos2 = sub_msg.index('\n');
 						# print("pos2: ",pos2)
 						# print("pos2 is " + str(pos2))
-						length = int(sub_msg[:pos2])
-						# print("length: ",length)
+						length = int(sub_msg[:sub_msg.index('\n')])
+						print("length: ",length)
 						# print("Length is " + str(length))		
-						msg = sub_msg[pos2+2:]
-						# print("msg: ",msg)	
+						msg = message_string[pos+pos2+pos3+4:]
+						print("msg: ",msg)	
 						# print(msg)
 
 						for key in clients:
@@ -139,7 +141,7 @@ def clientthread(conn,addr):
 								#print(bytes(""+uname+": "+message, 'utf-8'))
 								# print(bytes(""+uname+": "+msg, 'utf-8'))
 								
-								conn_forward.send(bytes(""+uname+": "+msg, 'utf-8'))
+								conn_forward.send(bytes(""+uname+"\n "+msg+"\n ", 'utf-8')+sign_send)
 
 								msent = conn_forward.recv(2048)
 								msent_str = str(msent.decode('utf-8'))
@@ -167,7 +169,7 @@ def clientthread(conn,addr):
 							# 	continue
 
 		except:
-			continue
+			contnue
 
 
 '''
