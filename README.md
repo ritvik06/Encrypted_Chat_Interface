@@ -32,7 +32,7 @@ Here are the sample instructions used to connect and send messages between two c
 `python client_chat.py "0.0.0.0" 9000 jay`
 
 ## Sending Messages
-To direct messages to a user type `@username_recipient: message`
-While Receiving messages, client receives `#username_sender: message`
-To unregister a client, simply type `UNREGISTER` in the stdin of the client
++ `@username_recipient: message` : To direct messages to a user type 
++ `#username_sender: message` : While Receiving messages, client receives 
++ `UNREGISTER` : Goes into stdin to unregister a client
 
