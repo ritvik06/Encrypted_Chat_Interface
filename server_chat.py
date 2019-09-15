@@ -80,6 +80,13 @@ def clientthread(conn,addr):
 
 					print("NEW KEY REGISTERED")
 
+				elif(message_string[:10]=="UNREGISTER"):
+					print(message_string)
+					uname = message_string[11:]
+					clients.pop(uname,None)
+					conn.send(bytes("UNREGISTERED " + uname,'utf-8'))
+					return
+
 				elif (message_string[:8]=="FETCHKEY"):
 					uname_rec = message_string[8:]
 					public_key = clients[uname_rec][5]

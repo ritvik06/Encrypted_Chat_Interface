@@ -183,36 +183,46 @@ while True:
 
 			# try:
 			message1 = sys.stdin.readline() 
-			assert(message1[0]=='@')
-			pos = message1.index(':')
-			uname_rec = message1[1:pos]
-			message = message1[pos+1:]
-			server_send.send(bytes("FETCHKEY" + uname_rec,'utf-8'))
-			pub_key_rec = server_send.recv(2048)
-			# print("reeived public key: ",pub_key_rec)
-			#pub_key_rec = pub_key_rec.decode('utf-8')
-			#print(pub_key_rec)
-			# pub_key_rec = RSA.importKey(pub_key_rec)
-			# print(pub_key_rec.can_encrypt())
-			pub_key_rec = RSA.importKey(pub_key_rec, passphrase=None) 
-			# print("vds:",pub_key_rec)
-			# print("message: ",message.encode('UTF-8'))
-			# print("message: ",type(message.encode('UTF-8')))
-			encrypted = pub_key_rec.encrypt(message.encode('UTF-8'),32)
-			# print(encrypted)
-			# print(type(encrypted))
-			# print("MESSAGE: ",message)
-			#salt
-			# print(sign(message.encode('utf-8'),key))
-			sign_send = b64encode(sign(message.encode('utf-8'),key))
+			if(message1[:10]=="UNREGISTER"):
+				server_send.send(bytes("UNREGISTER " + uname,'utf8'))
+				msg = server_send.recv(2048)
+				msg = str(msg.decode('utf-8'))
+				print(msg)
+				server_send.close()
+				server_rec.close()
+				exit()
 
-			server_send.send(bytes("SEND" + uname_rec + "\nSIGN",'utf-8') + sign_send + bytes( "\n"+
-					"Content-Length" + str(len(message)) + "\n\n"+ str(encrypted),'utf-8')) 
-			
-			sys.stdout.write("<You>: "+message)
-			# except:
-			# 	print("input error")
-			# 	continue
+			else:
+				assert(message1[0]=='@')
+				pos = message1.index(':')
+				uname_rec = message1[1:pos]
+				message = message1[pos+1:]
+				server_send.send(bytes("FETCHKEY" + uname_rec,'utf-8'))
+				pub_key_rec = server_send.recv(2048)
+				# print("reeived public key: ",pub_key_rec)
+				#pub_key_rec = pub_key_rec.decode('utf-8')
+				#print(pub_key_rec)
+				# pub_key_rec = RSA.importKey(pub_key_rec)
+				# print(pub_key_rec.can_encrypt())
+				pub_key_rec = RSA.importKey(pub_key_rec, passphrase=None) 
+				# print("vds:",pub_key_rec)
+				# print("message: ",message.encode('UTF-8'))
+				# print("message: ",type(message.encode('UTF-8')))
+				encrypted = pub_key_rec.encrypt(message.encode('UTF-8'),32)
+				# print(encrypted)
+				# print(type(encrypted))
+				# print("MESSAGE: ",message)
+				#salt
+				# print(sign(message.encode('utf-8'),key))
+				sign_send = b64encode(sign(message.encode('utf-8'),key))
+
+				server_send.send(bytes("SEND" + uname_rec + "\nSIGN",'utf-8') + sign_send + bytes( "\n"+
+						"Content-Length" + str(len(message)) + "\n\n"+ str(encrypted),'utf-8')) 
+				
+				sys.stdout.write("<You>: "+message)
+				# except:
+				# 	print("input error")
+				# 	continue
 
 		else:
 			try:
