@@ -184,7 +184,7 @@ while True:
 			# try:
 			message1 = sys.stdin.readline() 
 			if(message1[:10]=="UNREGISTER"):
-				server_send.send(bytes("UNREGISTER " + uname,'utf8'))
+				server_send.send(bytes("UNREGISTER " + uname,'utf-8'))
 				msg = server_send.recv(2048)
 				msg = str(msg.decode('utf-8'))
 				print(msg)
