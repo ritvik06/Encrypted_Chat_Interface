@@ -34,4 +34,5 @@ Here are the sample instructions used to connect and send messages between two c
 ## Sending Messages
 To direct messages to a user type `@username_recipient: message`
 While Receiving messages, client receives `#username_sender: message`
+To unregister a client, simply type `UNREGISTER` in the stdin of the client
 
