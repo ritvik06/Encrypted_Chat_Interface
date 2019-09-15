@@ -13,8 +13,6 @@ The assignment documentation can be found [here](https://d1b10bmlvqabco.cloudfro
 
 ## Main Files
 + `client_chat.py` - This is an implementation of the client that sends data to other clients from stdin via the central server and recieves data from other clients as well. 
-+ `server.py` - This is an implementation of a random bot.
-+ `client.py` - This will encapsulate your process and help it connect to the game server.
   > `ip` (mandatory) - The IP address.  
   > `port` (mandatory) - The Server Port.  
   > `username` (mandatory) - The username of the client  
