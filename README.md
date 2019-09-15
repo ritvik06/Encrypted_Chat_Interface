@@ -4,7 +4,7 @@ Implemented a chat application that allows users to do an encrypted chat with on
 
 ## Details
 This is a course assignment for the graduate-level Computer Networks course taught by [**Prof. Aditeshwar Seth**]  
-The assignment documentation can be found [here](http://www.cse.iitd.ac.in/~mausam/courses/col333/autumn2019/A2/A2.pdf)
+The assignment documentation can be found [here](https://d1b10bmlvqabco.cloudfront.net/attach/jydz42yrnzu2mc/ir1uq7pcpba2cm/jzm0prt5ymp9/2_chat_application.pdf)
 
 ## Dependencies
 + Python3.5
